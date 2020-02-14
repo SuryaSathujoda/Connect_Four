@@ -7,7 +7,6 @@ class Board():
         self.board = np.zeros(self.dim)
         self.is_complete = False
         self.winner_id = -1
-        #self.test_board()
 
     def check_state(self):
         for i in range(self.dim[0]-3):
@@ -16,42 +15,40 @@ class Board():
 
                 diag_trace = np.einsum("ii->", current_splice)
                 row_sum = np.einsum("ij->i", current_splice)
-                is_winner, player_id = self.check_winner(row_sum, diag_trace)
-                if(is_winner):
-                    self.is_complete = True
-                    self.winner = player_id
-                    print("GAME OVER")
-                    print(self.board)
+                if(self.check_winner(row_sum, diag_trace)):
                     return
         
                 transpose_splice = np.einsum("ji", current_splice)
                 diag_trace = np.einsum("ii->", transpose_splice)
                 row_sum = np.einsum("ij->i", transpose_splice)
-                is_winner, player_id = self.check_winner(row_sum, diag_trace)
-                if(is_winner):
-                    self.is_complete = True
-                    self.winner = player_id
+                if(self.check_winner(row_sum, diag_trace)):
+                    return 
 
     def check_winner(self, row_sum, diag_trace):
-        if(diag_trace == 4 or 4 in row_sum):
+        if(diag_trace in Player.win_conditions):
             self.is_complete = True
-            return True, 1
-        return False, -1
+            self.winner_id = Player.win_conditions[diag_trace]
+            print(self.board)
+            return True
 
-    def update_state(self, col, player_val):
-        player_token = player_val
-        token_added = False
+        for val in row_sum:
+            if(val in Player.win_conditions):
+                self.is_complete = True
+                self.winner_id = Player.win_conditions[diag_trace]
+                print(self.board)
+                return True
+
+    def update_state(self, col, player_token):
+        if(np.count_nonzero(self.board == 0) == 0):
+            self.is_complete = True
+            print(self.board)
+            return
+
         for i in range(self.dim[0]):
             if(self.board[self.dim[0]-i-1, col] == 0):
                 self.board[self.dim[0]-i-1, col] = player_token
-                token_added = True
                 return
-        print("error")
-
-    def test_board(self):
-        for i,j in itertools.product(range(4), range(4)):
-            self.board[i,j] = 1
-        print(str(self.board))
+        #print("error")
 
     def __str__(self):
         board_disp = ""
@@ -59,11 +56,30 @@ class Board():
             board_disp += str(i)+"\n"
         return board_disp
 
+class Player():
+
+    win_conditions = {}
+
+    def __init__(self, player_name, player_id, token_value):
+        self.player_name = player_name
+        self.player_id = player_id
+        self.token_value = token_value
+        self.win_condition = token_value * 4
+        Player.win_conditions[self.win_condition] = self.player_id
+
 active_board = Board(8,8)
 player_value = 1
 col_counter = 1
+
+player_list = {}
+player_list[1] = Player("p1", 1, -1) 
+player_list[2] = Player("p2", 2, -2) 
+player_list[3] = Player("p3", 3, -3) 
+
+print(Player.win_conditions)
+
 while(active_board.is_complete == False):
-    active_board.update_state(col_counter%7, player_value)
-    player_value = player_value * -1
-    active_board.check_state()
-    col_counter += 1
+    for i in range(1,4):
+        active_board.update_state(col_counter%8, player_list[i].player_id)
+        active_board.check_state()
+        col_counter += 1
