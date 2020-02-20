@@ -34,7 +34,7 @@ class Board():
         for val in row_sum:
             if(val in Player.win_conditions):
                 self.is_complete = True
-                self.winner_id = Player.win_conditions[diag_trace]
+                self.winner_id = Player.win_conditions[val]
                 print(self.board)
                 return True
 
@@ -72,14 +72,20 @@ player_value = 1
 col_counter = 1
 
 player_list = {}
-player_list[1] = Player("p1", 1, -1) 
-player_list[2] = Player("p2", 2, -2) 
-player_list[3] = Player("p3", 3, -3) 
+player_list[1] = Player("p1", 1, 1) 
+player_list[2] = Player("p2", 2, -1) 
+#player_list[3] = Player("p3", 3, -3) 
 
 print(Player.win_conditions)
 
+def get_input():
+    column_no = int(input("Which Column do you want to enter token?"))
+    return column_no
+
 while(active_board.is_complete == False):
-    for i in range(1,4):
-        active_board.update_state(col_counter%8, player_list[i].player_id)
+    for i in range(1,3):
+        active_board.update_state(get_input(), player_list[i].token_value)
+        print(active_board)
         active_board.check_state()
-        col_counter += 1
+        if(active_board.is_complete):
+            break
