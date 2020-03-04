@@ -359,14 +359,22 @@ def start_game():
     live_game = Game(Board(int(board_size[0]), int(board_size[1])))
 
     # Get number of human players and adds them to the Game object
-    no_of_players = int(input("Enter Number of Players: "))
+    no_of_players = input("Enter Number of Players: ")
+    while(not no_of_players.isdigit() or int(no_of_players) < 0):
+        no_of_players = input("Enter Number of Players >= 0: ")
+    no_of_players = int(no_of_players)
+
     for i in range(no_of_players):
         player_name = input("Enter Player Name: ")
         print("Your token value is: %d!\n" %(i+1))
         live_game.add_player(Player(player_name, i, i+1))
 
     # Gets number of AI players and adds them to the Board object with negative tokense
-    no_of_ais = int(input("Enter Number of AIs: "))
+    no_of_ais = input("Enter Number of AIs: ")
+    while(not no_of_ais.isdigit() or int(no_of_ais) < 0):
+        no_of_ais = input("Enter Number of AIs >= 0: ")
+    no_of_ais = int(no_of_ais)
+
     for i in range(no_of_ais):
         ai_name = "Computer "+str(i)
         live_game.add_player(AI(ai_name, no_of_players+i, -i-1))
