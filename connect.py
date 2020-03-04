@@ -73,15 +73,21 @@ class Game():
             winner_exists (Boolean): Whether there is a winner.
         """
 
-        # Generating a greyscale colour for each of the n players
-        colours = np.linspace(0, 0.8, len(self.player_list))
+        # Generating a colours for each of the n players
+        colours = []
+        for i in range(len(self.player_list)):
+            colours.append((np.random.ranf(), np.random.ranf(), np.random.ranf()))
+
+        # Hacking the legend
+        for i in range(len(colours)):
+            plt.scatter(-1, -1, color = colours[i], label=self.player_list[i].player_name)
 
         # Plotting the player tokens on the graph
         for i in range(self.board.dim[0]):
             for j in range(self.board.dim[1]):
                 if(not self.board.board[i][j] == 0):
                     current_player_id = self.player_tokens[self.board.board[i][j]]
-                    plt.scatter(j+1, self.board.dim[0]-i, color=str(colours[current_player_id]))
+                    plt.scatter(j+1, self.board.dim[0]-i, color=colours[current_player_id])
 
         # If winner_exists then the winning line is plotted
         if(winner_exists):
@@ -91,7 +97,16 @@ class Game():
             plt.plot(winning_line_xs, winning_line_ys)
 
         # Plotting requirements
-        plt.xlim(0, self.board.dim[1]+1)
+        if(self.board.winner_id == -1):
+            title = "The Game is a Draw!"
+        else:
+            title = "The winner is: %s" %self.player_list[self.board.winner_id].player_name
+
+        plt.suptitle(title, fontsize=20)
+        plt.legend()
+
+        # Slightly longer x axis to allow for legend
+        plt.xlim(0, self.board.dim[1]+4)
         plt.ylim(0, self.board.dim[0]+1)
         plt.show()
 
@@ -299,10 +314,34 @@ class Player():
         return int(column_no)
 
 class AI(Player):
+    """ This class is a subclass of Player which overrides the get_move method for AIs.
+
+    Attributes:
+        player_name (str): Name of the Player.
+        player_id (int): Internal unique player id.
+        token_value (float): Internal token value.
+        win_condition (float): Sum for which the player wins a 4x4 subgrid.
+    """
+
     def __init__(self, player_name, player_id, token_value):
+        """
+        Constructor for AI class.
+
+        Parameters:
+            player_name (str): Name of the Player.
+            player_id (int): Player id given.
+            token_value (int): Human readable token value.
+        """
+
         super().__init__(player_name, player_id, token_value)
 
     def get_move(self, board):
+        """
+        This function overrides super.get_move() and returns the AIs move choice.
+
+        Parameters:
+            board (ndarray): The current board the player is playing on.
+        """
         return np.random.randint(board.dim[1])
 
 def start_game():
@@ -313,12 +352,17 @@ def start_game():
     # Getting board dimensions and initialises the Game object.
     print("Welcome to Connect 4!")
     board_size = str(input("Enter Board size (n,m): ")).split(",")
+    while(not len(board_size) == 2 or not board_size[0].isdigit() or not board_size[1].isdigit()
+            or not int(board_size[0]) > 0 or not int(board_size[1]) > 0):
+        board_size = str(input("Enter in format (n,m) without brackets: ")).split(",")
+
     live_game = Game(Board(int(board_size[0]), int(board_size[1])))
 
     # Get number of human players and adds them to the Game object
     no_of_players = int(input("Enter Number of Players: "))
     for i in range(no_of_players):
         player_name = input("Enter Player Name: ")
+        print("Your token value is: %d!\n" %(i+1))
         live_game.add_player(Player(player_name, i, i+1))
 
     # Gets number of AI players and adds them to the Board object with negative tokense
@@ -326,6 +370,13 @@ def start_game():
     for i in range(no_of_ais):
         ai_name = "Computer "+str(i)
         live_game.add_player(AI(ai_name, no_of_players+i, -i-1))
+
+    if(no_of_players + no_of_ais == 0):
+        print("There are no players so two AIs decide to play together :)")
+        no_of_ais = 2
+        for i in range(no_of_ais):
+            ai_name = "Computer "+str(i)
+            live_game.add_player(AI(ai_name, no_of_players+i, -i-1))
 
     print("\nGame Start!\n")
 
